@@ -38,7 +38,12 @@
         "symfony/serializer": "^8.1",
         "symfony/yaml": "^8.1"
     },
+    "suggest": {
+        "symfony/asset-mapper": "Maps the optional filter modal's JavaScript module in Symfony.",
+        "symfony/twig-bundle": "Renders the optional Bootstrap filter modal."
+    },
     "require-dev": {
+        "derafu/twig": "dev-main",
         "derafu/symfony-query-bundle": "dev-main",
         "doctrine/doctrine-bundle": "^3.4",
         "doctrine/orm": "^3.7",
@@ -47,7 +52,9 @@
         "friendsofphp/php-cs-fixer": "^3.95",
         "nikic/php-parser": "^5.9",
         "phpstan/phpstan": "^2.3",
-        "phpunit/phpunit": "^13.4"
+        "phpunit/phpunit": "^13.4",
+        "symfony/asset-mapper": "^8.1",
+        "symfony/twig-bundle": "^8.1"
     },
     "scripts": {
         "tests": "XDEBUG_MODE=coverage vendor/bin/phpunit --configuration=phpunit.xml",

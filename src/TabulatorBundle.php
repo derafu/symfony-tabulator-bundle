@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace Derafu\TabulatorBundle;
 
+use Symfony\Component\AssetMapper\AssetMapperInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
@@ -22,6 +23,17 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 final class TabulatorBundle extends AbstractBundle
 {
     protected string $extensionAlias = 'derafu_tabulator';
+
+    public function prependExtension(ContainerConfigurator $configurator, ContainerBuilder $container): void
+    {
+        if (interface_exists(AssetMapperInterface::class)) {
+            $container->prependExtensionConfig('framework', [
+                'asset_mapper' => [
+                    'paths' => [$this->getPath() . '/assets' => '@derafu/tabulator'],
+                ],
+            ]);
+        }
+    }
 
     /** @param array<string, mixed> $config */
     public function loadExtension(array $config, ContainerConfigurator $configurator, ContainerBuilder $container): void

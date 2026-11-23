@@ -12,12 +12,16 @@ declare(strict_types=1);
 
 namespace Derafu\TestsTabulatorBundle\Translation;
 
-use Derafu\Translation\Lint\TranslationAudit;
 use Derafu\Translation\SimpleTranslationResourceProvider;
+use Derafu\Translation\TranslatorFactory;
+use Derafu\Twig\Extension\TranslationExtension;
+use Derafu\Twig\Lint\TwigTranslationAudit;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
 
 #[CoversNothing]
 final class TabulatorMessagesTest extends TestCase
@@ -36,9 +40,15 @@ final class TabulatorMessagesTest extends TestCase
     public function testTheBundleIsTranslated(string $locale): void
     {
         $root = dirname(__DIR__, 3);
-        $report = (new TranslationAudit())->audit(
+        $provider = new SimpleTranslationResourceProvider([$root . '/translations']);
+        $twig = new Environment(new FilesystemLoader([$root . '/templates']));
+        $twig->addExtension(new TranslationExtension(TranslatorFactory::create($locale, [], [$provider])));
+
+        $report = (new TwigTranslationAudit())->audit(
             $root . '/src',
-            new SimpleTranslationResourceProvider([$root . '/translations']),
+            $root . '/templates',
+            $provider,
+            $twig,
             $locale,
             allowedThrowables: [
                 // Symfony uses this exception to preserve the HTTP 400 status.
@@ -51,5 +61,6 @@ final class TabulatorMessagesTest extends TestCase
         $this->assertSame([], $report->describe($report->missingTranslations));
         $this->assertSame([], $report->describe($report->notUsedBySources));
         $this->assertSame([], $report->describe($report->notTranslatable));
+        $this->assertSame([], $report->describe($report->untranslatedTexts));
     }
 }

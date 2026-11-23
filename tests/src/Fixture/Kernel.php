@@ -18,6 +18,7 @@ use Derafu\TabulatorBundle\Serializer\TabulatorEncoder;
 use Derafu\TabulatorBundle\TabulatorBundle;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Symfony\Bundle\FrameworkBundle\FrameworkBundle;
+use Symfony\Bundle\TwigBundle\TwigBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\BundleInterface;
@@ -25,8 +26,10 @@ use Symfony\Component\HttpKernel\Kernel as BaseKernel;
 
 final class Kernel extends BaseKernel
 {
-    public function __construct(private readonly string $projectDirectory)
-    {
+    public function __construct(
+        private readonly string $projectDirectory,
+        private readonly bool $withTwig = false,
+    ) {
         parent::__construct('test', true);
     }
 
@@ -38,15 +41,25 @@ final class Kernel extends BaseKernel
         yield new ApiPlatformBundle();
         yield new QueryBundle();
         yield new TabulatorBundle();
+        if ($this->withTwig) {
+            yield new TwigBundle();
+        }
     }
 
     public function registerContainerConfiguration(LoaderInterface $loader): void
     {
-        $loader->load(static function (ContainerBuilder $container): void {
+        $loader->load(function (ContainerBuilder $container): void {
             $container->loadFromExtension('framework', [
                 'secret' => 'tabulator-test-secret',
                 'router' => ['resource' => dirname(__DIR__, 2) . '/fixtures/routes.yaml'],
             ]);
+
+            if ($this->withTwig) {
+                $container->loadFromExtension('twig', ['strict_variables' => true]);
+                $container->setAlias('test.twig', 'twig')->setPublic(true);
+                $container->setAlias('test.asset_mapper', 'asset_mapper')->setPublic(true);
+                $container->setAlias('test.importmap', 'asset_mapper.importmap.renderer')->setPublic(true);
+            }
 
             $container->loadFromExtension('doctrine', [
                 'dbal' => ['driver' => 'pdo_sqlite', 'memory' => true],

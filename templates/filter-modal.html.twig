@@ -1,0 +1,121 @@
+{% trans_default_domain 'tabulator' %}
+
+<div class="modal fade" id="{{ modal_id }}" tabindex="-1" aria-labelledby="{{ modal_id }}-title" aria-hidden="true" data-tabulator-filter-modal>
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="{{ modal_id }}-title">{{ 'Filters'|trans }}</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ 'Close'|trans }}"></button>
+            </div>
+            <form class="d-flex flex-column overflow-hidden" data-filter-form>
+                <div class="modal-body">
+                    <div class="nav nav-tabs mb-3" role="tablist" data-filter-tabs hidden>
+                        <button class="nav-link active" id="{{ modal_id }}-guided-tab" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#{{ modal_id }}-guided" aria-controls="{{ modal_id }}-guided" aria-selected="true" data-filter-guided-tab>
+                            {{ 'Guided filters'|trans }}
+                        </button>
+                        <button class="nav-link" id="{{ modal_id }}-expression-tab" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#{{ modal_id }}-expression" aria-controls="{{ modal_id }}-expression" aria-selected="false" data-filter-expression-tab>
+                            {{ 'Smart Filter expression'|trans }}
+                        </button>
+                        <button class="nav-link" id="{{ modal_id }}-operators-tab" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#{{ modal_id }}-operators" aria-controls="{{ modal_id }}-operators" aria-selected="false" data-filter-operators-tab>
+                            {{ 'Operators'|trans }}
+                        </button>
+                    </div>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="{{ modal_id }}-guided" role="tabpanel" aria-labelledby="{{ modal_id }}-guided-tab">
+                            <div data-filter-rows></div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-filter-add>{{ 'Add filter'|trans }}</button>
+                        </div>
+                        <div class="tab-pane" id="{{ modal_id }}-expression" role="tabpanel" aria-labelledby="{{ modal_id }}-expression-tab">
+                            <label for="{{ modal_id }}-expression-value" class="form-label small fw-semibold">{{ 'Complete Smart Filter expression'|trans }}</label>
+                            <textarea class="form-control font-monospace" id="{{ modal_id }}-expression-value" aria-describedby="{{ modal_id }}-expression-help" rows="3" data-filter-expression></textarea>
+                            <div class="form-text mb-2" id="{{ modal_id }}-expression-help">
+                                {{ 'Use the format <code>{format}</code>. For example, <code>{example}</code>.'|trans|replace({
+                                    '{format}': 'path?operatorValue',
+                                    '{example}': 'amount?between:1000,5000',
+                                })|raw }}
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="{{ modal_id }}-operators" role="tabpanel" aria-labelledby="{{ modal_id }}-operators-tab">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th scope="col" style="width: 1%"><span class="visually-hidden">{{ 'Copy operator'|trans }}</span></th>
+                                            <th scope="col">{{ 'Operator'|trans }}</th>
+                                            <th scope="col">{{ 'Description'|trans }}</th>
+                                            <th scope="col">{{ 'Example'|trans }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-filter-operators></tbody>
+                                </table>
+                            </div>
+                            <div class="visually-hidden" role="status" data-filter-copy-status
+                                data-copied="{{ 'Operator copied.'|trans }}"
+                                data-copy-failed="{{ 'Could not copy the operator.'|trans }}"></div>
+                        </div>
+                    </div>
+                    <div class="alert alert-danger mt-3 mb-0" role="alert" data-filter-error hidden>
+                        {{ 'Each field can appear only once.'|trans }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger btn-sm me-auto" data-filter-clear>{{ 'Clear all'|trans }}</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ 'Cancel'|trans }}</button>
+                    <button type="submit" class="btn btn-primary btn-sm" data-filter-apply>{{ 'Apply'|trans }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <template data-filter-row>
+        <div class="row g-2 mb-2 align-items-center">
+            <div class="col-sm">
+                <select class="form-select form-select-sm" data-filter-field aria-label="{{ 'Field'|trans }}"></select>
+            </div>
+            <div class="col-sm">
+                <select class="form-select form-select-sm" data-filter-operator aria-label="{{ 'Operator'|trans }}"></select>
+            </div>
+            <div class="col-sm">
+                <input class="form-control form-control-sm" data-filter-value aria-label="{{ 'Value'|trans }}">
+            </div>
+            <div class="col-sm-auto">
+                <button type="button" class="btn btn-outline-danger btn-sm" data-filter-remove>{{ 'Remove'|trans }}</button>
+            </div>
+        </div>
+    </template>
+    <template data-filter-operator-row>
+        <tr>
+            <td>
+                <button type="button" class="btn btn-outline-secondary btn-sm p-1" title="{{ 'Copy operator'|trans }}" data-filter-copy>
+                    <svg class="d-block" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.25" aria-hidden="true" focusable="false">
+                        <path d="M10.5 4.5v-2a1 1 0 0 0-1-1h-7a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h2"/>
+                        <rect x="5.5" y="5.5" width="9" height="9" rx="1"/>
+                    </svg>
+                </button>
+            </td>
+            <td><code data-filter-operator-symbol></code></td>
+            <td data-filter-operator-description></td>
+            <td><code data-filter-operator-example></code></td>
+        </tr>
+    </template>
+    <template data-filter-operator-labels>
+        <span data-operator="=" data-example-operand="100">{{ 'Equals'|trans }}</span>
+        <span data-operator="!=" data-example-operand="100">{{ 'Does not equal'|trans }}</span>
+        <span data-operator="<" data-example-operand="1000">{{ 'Less than'|trans }}</span>
+        <span data-operator="<=" data-example-operand="1000">{{ 'At most'|trans }}</span>
+        <span data-operator=">" data-example-operand="1000">{{ 'Greater than'|trans }}</span>
+        <span data-operator=">=" data-example-operand="1000">{{ 'At least'|trans }}</span>
+        <span data-operator="like ~~" data-example-operand="{{ 'text'|trans }}">{{ 'Contains'|trans }}</span>
+        <span data-operator="!~~" data-example-operand="{{ 'text'|trans }}">{{ 'Does not contain'|trans }}</span>
+        <span data-operator="starts ^" data-example-operand="{{ 'text'|trans }}">{{ 'Starts with'|trans }}</span>
+        <span data-operator="!^" data-example-operand="{{ 'text'|trans }}">{{ 'Does not start with'|trans }}</span>
+        <span data-operator="ends $" data-example-operand="{{ 'text'|trans }}">{{ 'Ends with'|trans }}</span>
+        <span data-operator="!$" data-example-operand="{{ 'text'|trans }}">{{ 'Does not end with'|trans }}</span>
+        <span data-operator="keywords">{{ 'Contains keywords'|trans }}</span>
+        <span data-operator="in:" data-example-operand="A,E,R">{{ 'In list'|trans }}</span>
+        <span data-operator="notin:" data-example-operand="A,E">{{ 'Outside list'|trans }}</span>
+        <span data-operator="between:" data-example-operand="1000,5000">{{ 'Between'|trans }}</span>
+        <span data-operator="notbetween:" data-example-operand="1000,5000">{{ 'Outside range'|trans }}</span>
+        <span data-operator="is:null" data-example-operand="">{{ 'Is empty'|trans }}</span>
+        <span data-operator="isnot:null" data-example-operand="">{{ 'Is not empty'|trans }}</span>
+    </template>
+</div>
