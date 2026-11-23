@@ -185,12 +185,32 @@ test('keeps the operator reference in a read-only tab and copies only the operat
     const copy = range.getByRole('button', {name: 'Copy operator between:', exact: true});
     await expect(copy).toHaveAttribute('title', 'Copy operator');
     await expect(copy).toHaveText('');
-    await expect(copy.locator('svg')).toBeVisible();
+    const copyIcon = copy.locator('[data-copy-icon="idle"]');
+    await expect(copyIcon).toBeVisible();
     await copy.click();
     const status = modal.getByRole('status');
     await expect(status).toHaveText('Operator copied.');
     await expect(status).toHaveClass('visually-hidden');
+    await expect(copy.locator('[data-copy-icon="copied"]')).toBeVisible();
+    await expect(copyIcon).toBeHidden();
+    await expect(copy).toHaveClass(/\bbtn-outline-success\b/);
+    await expect(copy).toHaveAttribute('title', 'Operator copied.');
+    await expect(copy).toBeFocused();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('between:');
+    await expect(copyIcon).toBeVisible();
+    await expect(copy).toHaveAttribute('title', 'Copy operator');
+
+    await page.evaluate(() => {
+        navigator.clipboard.writeText = () => Promise.reject(new DOMException('Denied', 'NotAllowedError'));
+    });
+    await copy.click();
+    await expect(status).toHaveText('Could not copy the operator.');
+    await expect(copy.locator('[data-copy-icon="copyFailed"]')).toBeVisible();
+    await expect(copyIcon).toBeHidden();
+    await expect(copy).toHaveClass(/\bbtn-outline-danger\b/);
+    await expect(copy).toHaveAttribute('title', 'Could not copy the operator.');
+    await expect(copyIcon).toBeVisible();
+    await expect(copy).toHaveAttribute('title', 'Copy operator');
 
     await modal.getByRole('button', {name: 'Cancel', exact: true}).click();
     await expect(modal).toBeHidden();

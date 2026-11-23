@@ -5,6 +5,11 @@ import {
 } from './filter-modal-config.js';
 
 const noOperand = new Set(['is:null', 'isnot:null']);
+const copyButtonStyles = {
+    idle: 'btn-outline-secondary',
+    copied: 'btn-outline-success',
+    copyFailed: 'btn-outline-danger',
+};
 
 /**
  * Connects a rendered Bootstrap filter modal to one Tabulator instance.
@@ -58,6 +63,7 @@ export function connectFilterModal(table, {modal, fields, smart, expression, url
 
     const help = query('[data-filter-operators]');
     const copyStatus = query('[data-filter-copy-status]');
+    const copyFeedbackTimers = new Map();
     function fillOperatorHelp() {
         const template = query('[data-filter-operator-row]');
         for (const operator of smartOperators) {
@@ -66,15 +72,46 @@ export function connectFilterModal(table, {modal, fields, smart, expression, url
             row.querySelector('[data-filter-operator-description]').textContent = labels.get(operator) ?? operator;
             row.querySelector('[data-filter-operator-example]').textContent = examples.get(operator) ?? '';
             const copy = row.querySelector('[data-filter-copy]');
-            copy.setAttribute('aria-label', `${copy.title} ${operator}`);
-            listen(copy, 'click', async () => {
-                copyStatus.textContent = '';
-                try {
-                    await navigator.clipboard.writeText(operator);
-                    copyStatus.textContent = copyStatus.dataset.copied;
-                } catch {
-                    copyStatus.textContent = copyStatus.dataset.copyFailed;
+            const copyTitle = copy.title;
+            const icons = copy.querySelectorAll('[data-copy-icon]');
+            let buttonState = 'idle';
+            let copying = false;
+            copy.setAttribute('aria-label', `${copyTitle} ${operator}`);
+
+            function updateCopyButton(state, title) {
+                copy.classList.replace(copyButtonStyles[buttonState], copyButtonStyles[state]);
+                copy.title = title;
+                for (const icon of icons) {
+                    icon.classList.toggle('d-none', icon.dataset.copyIcon !== state);
                 }
+                buttonState = state;
+            }
+
+            listen(copy, 'click', async () => {
+                if (copying) {
+                    return;
+                }
+                copying = true;
+                copyStatus.textContent = '';
+                let state = 'copied';
+                try {
+                    await window.navigator.clipboard.writeText(operator);
+                } catch {
+                    state = 'copyFailed';
+                }
+                copying = false;
+                if (destroyed) {
+                    return;
+                }
+
+                const message = copyStatus.dataset[state];
+                copyStatus.textContent = message;
+                updateCopyButton(state, message);
+                window.clearTimeout(copyFeedbackTimers.get(copy));
+                copyFeedbackTimers.set(copy, window.setTimeout(() => {
+                    updateCopyButton('idle', copyTitle);
+                    copyFeedbackTimers.delete(copy);
+                }, 2000));
             });
             help.append(row);
         }
@@ -355,6 +392,10 @@ export function connectFilterModal(table, {modal, fields, smart, expression, url
             if (urlSync) {
                 table.off('dataFiltering', scheduleUrlSync);
             }
+            for (const timer of copyFeedbackTimers.values()) {
+                window.clearTimeout(timer);
+            }
+            copyFeedbackTimers.clear();
             rows.replaceChildren();
             help.replaceChildren();
             copyStatus.textContent = '';
