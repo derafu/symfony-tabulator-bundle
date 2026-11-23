@@ -27,7 +27,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: mbstring, pdo_sqlite, xdebug
+          extensions: intl, mbstring, pdo_sqlite, xdebug
           tools: composer
 
       - name: Display PHP version
