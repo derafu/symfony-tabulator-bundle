@@ -1,0 +1,9 @@
+services:
+    Derafu\TabulatorBundle\EventSubscriber\TabulatorQueryStringSubscriber:
+        tags: ['kernel.event_subscriber']
+
+    Derafu\TabulatorBundle\Serializer\TabulatorEncoder:
+        tags: ['serializer.encoder']
+
+    Derafu\TabulatorBundle\Serializer\TabulatorNormalizer:
+        tags: ['serializer.normalizer']
